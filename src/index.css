@@ -36,7 +36,7 @@
 
     --radius: 0.75rem;
 
-    --canvas: 40 33% 98%;
+    --canvas: 42 30% 96%;
     --toolbar: 0 0% 100%;
     --card-border: 0 0% 90%;
 
@@ -70,7 +70,7 @@
     --border: 0 0% 20%;
     --input: 0 0% 20%;
     --ring: 100 22% 62%;
-    --canvas: 0 0% 8%;
+    --canvas: 0 0% 6%;
     --toolbar: 0 0% 12%;
     --card-border: 0 0% 20%;
     --sidebar-background: 0 0% 10%;
@@ -102,5 +102,12 @@
   .canvas-dots {
     background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  .canvas-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }

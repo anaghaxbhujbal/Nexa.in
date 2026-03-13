@@ -4,6 +4,7 @@ import { BoardSidebar } from '@/components/canvas/BoardSidebar';
 import { InfiniteCanvas } from '@/components/canvas/InfiniteCanvas';
 import { FloatingToolbar } from '@/components/canvas/FloatingToolbar';
 import { MobileBottomNav } from '@/components/canvas/MobileBottomNav';
+import { MusicPlayer } from '@/components/canvas/MusicPlayer';
 
 const Index = () => {
   const {
@@ -14,6 +15,8 @@ const Index = () => {
     moveItem,
     addNote,
     addTodo,
+    addImage,
+    addScratch,
     updateItem,
     deleteItem,
     toggleTodo,
@@ -76,14 +79,20 @@ const Index = () => {
           onToolChange={setActiveTool}
           onAddNote={() => addNote()}
           onAddTodo={() => addTodo()}
+          onAddImage={() => addImage()}
+          onAddScratch={() => addScratch()}
         />
       </div>
 
       <MobileBottomNav
         onAddNote={() => addNote()}
         onAddTodo={() => addTodo()}
+        onAddImage={() => addImage()}
+        onAddScratch={() => addScratch()}
         onToggleSidebar={() => setMobileSidebarOpen(true)}
       />
+
+      <MusicPlayer />
     </div>
   );
 };

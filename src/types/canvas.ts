@@ -1,6 +1,6 @@
 export interface CanvasItem {
   id: string;
-  type: 'note' | 'todo';
+  type: 'note' | 'todo' | 'image' | 'scratch';
   x: number;
   y: number;
   width: number;
@@ -8,6 +8,7 @@ export interface CanvasItem {
   content?: string;
   color?: string;
   todos?: TodoItem[];
+  imageUrl?: string;
 }
 
 export interface TodoItem {

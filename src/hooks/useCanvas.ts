@@ -16,7 +16,7 @@ const defaultBoards: Board[] = [
         y: 120,
         width: 280,
         title: 'Welcome! 👋',
-        content: 'This is your visual workspace. Drag cards around, add notes and todos, and organize your thoughts visually.',
+        content: 'This is your creative workspace for writing stories, songs, and ideas. Drag cards around and connect them to map your flow.',
         color: 'mint',
       },
       {
@@ -28,36 +28,53 @@ const defaultBoards: Board[] = [
         title: 'Getting Started',
         todos: [
           { id: 't1', text: 'Explore the canvas', completed: false },
-          { id: 't2', text: 'Create a new note', completed: false },
-          { id: 't3', text: 'Connect two cards', completed: false },
+          { id: 't2', text: 'Add a moodboard image', completed: false },
+          { id: 't3', text: 'Use the scratch pad', completed: false },
         ],
+      },
+      {
+        id: 'scratch-1',
+        type: 'scratch',
+        x: 150,
+        y: 380,
+        width: 340,
+        title: 'Story Draft ✍️',
+        content: 'Once upon a time, in a city that never sleeps...\n\nThe rain drummed against the window as she picked up the pen again.',
       },
       {
         id: 'note-2',
         type: 'note',
-        x: 200,
-        y: 380,
-        width: 240,
-        title: 'Design Ideas',
-        content: 'Capture your creative thoughts here. Move this card anywhere on the canvas!',
+        x: 540,
+        y: 400,
+        width: 220,
+        title: 'Song Lyrics 🎵',
+        content: 'Verse 1:\nWalking through the golden haze\nMemories of brighter days',
         color: 'lavender',
       },
     ],
     connections: [
       { id: 'conn-1', fromId: 'note-1', toId: 'todo-1' },
+      { id: 'conn-2', fromId: 'scratch-1', toId: 'note-2' },
     ],
   },
   {
     id: 'board-2',
-    name: 'Project Alpha',
-    icon: '🚀',
+    name: 'Story Arc',
+    icon: '📖',
     items: [],
     connections: [],
   },
   {
     id: 'board-3',
-    name: 'Reading Notes',
-    icon: '📚',
+    name: 'Song Ideas',
+    icon: '🎵',
+    items: [],
+    connections: [],
+  },
+  {
+    id: 'board-4',
+    name: 'Moodboard',
+    icon: '🎨',
     items: [],
     connections: [],
   },
@@ -108,6 +125,33 @@ export function useCanvas() {
     };
     updateItems(items => [...items, newTodo]);
     return newTodo.id;
+  }, [updateItems]);
+
+  const addImage = useCallback((x?: number, y?: number) => {
+    const newImage: CanvasItem = {
+      id: generateId(),
+      type: 'image',
+      x: x ?? 200 + Math.random() * 200,
+      y: y ?? 200 + Math.random() * 200,
+      width: 240,
+      title: 'Moodboard',
+    };
+    updateItems(items => [...items, newImage]);
+    return newImage.id;
+  }, [updateItems]);
+
+  const addScratch = useCallback((x?: number, y?: number) => {
+    const newScratch: CanvasItem = {
+      id: generateId(),
+      type: 'scratch',
+      x: x ?? 200 + Math.random() * 200,
+      y: y ?? 200 + Math.random() * 200,
+      width: 340,
+      title: 'Scratch Pad',
+      content: '',
+    };
+    updateItems(items => [...items, newScratch]);
+    return newScratch.id;
   }, [updateItems]);
 
   const updateItem = useCallback((id: string, updates: Partial<CanvasItem>) => {
@@ -182,6 +226,8 @@ export function useCanvas() {
     moveItem,
     addNote,
     addTodo,
+    addImage,
+    addScratch,
     updateItem,
     deleteItem,
     toggleTodo,
