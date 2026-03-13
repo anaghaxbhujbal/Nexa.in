@@ -16,9 +16,17 @@ export interface TodoItem {
   completed: boolean;
 }
 
+export interface Connection {
+  id: string;
+  fromId: string;
+  toId: string;
+  color?: string;
+}
+
 export interface Board {
   id: string;
   name: string;
   icon: string;
   items: CanvasItem[];
+  connections: Connection[];
 }
