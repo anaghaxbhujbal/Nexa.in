@@ -2,6 +2,8 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { CanvasItem, Connection } from '@/types/canvas';
 import { NoteCard } from './NoteCard';
 import { TodoCard } from './TodoCard';
+import { ImageCard } from './ImageCard';
+import { ScratchCard } from './ScratchCard';
 import { ConnectionLayer } from './ConnectionLayer';
 
 interface InfiniteCanvasProps {
@@ -37,7 +39,6 @@ export function InfiniteCanvas({
 
   const dragRef = useRef<{ id: string; startX: number; startY: number; itemX: number; itemY: number } | null>(null);
 
-  // Connection state
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
@@ -112,10 +113,40 @@ export function InfiniteCanvas({
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
+  const connectorProps = {
+    onStartConnect: handleStartConnect,
+    onEndConnect: handleEndConnect,
+    isConnecting: !!connectingFrom,
+  };
+
+  const renderItem = (item: CanvasItem) => {
+    const common = {
+      key: item.id,
+      item,
+      onUpdate: onUpdateItem,
+      onDelete: onDeleteItem,
+      onDragStart: handleItemDragStart,
+      ...connectorProps,
+    };
+
+    switch (item.type) {
+      case 'note':
+        return <NoteCard {...common} />;
+      case 'todo':
+        return <TodoCard {...common} onToggleTodo={onToggleTodo} onAddTodo={onAddTodo} />;
+      case 'image':
+        return <ImageCard {...common} />;
+      case 'scratch':
+        return <ScratchCard {...common} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
       ref={containerRef}
-      className={`flex-1 relative overflow-hidden bg-canvas canvas-dots ${
+      className={`flex-1 relative overflow-hidden bg-canvas canvas-grid ${
         connectingFrom ? 'cursor-crosshair' : activeTool === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       }`}
       onPointerDown={handleCanvasPointerDown}
@@ -133,33 +164,7 @@ export function InfiniteCanvas({
           connectingFrom={connectingFrom}
           mousePos={mousePos}
         />
-        {items.map(item =>
-          item.type === 'note' ? (
-            <NoteCard
-              key={item.id}
-              item={item}
-              onUpdate={onUpdateItem}
-              onDelete={onDeleteItem}
-              onDragStart={handleItemDragStart}
-              onStartConnect={handleStartConnect}
-              onEndConnect={handleEndConnect}
-              isConnecting={!!connectingFrom}
-            />
-          ) : (
-            <TodoCard
-              key={item.id}
-              item={item}
-              onUpdate={onUpdateItem}
-              onDelete={onDeleteItem}
-              onToggleTodo={onToggleTodo}
-              onAddTodo={onAddTodo}
-              onDragStart={handleItemDragStart}
-              onStartConnect={handleStartConnect}
-              onEndConnect={handleEndConnect}
-              isConnecting={!!connectingFrom}
-            />
-          )
-        )}
+        {items.map(renderItem)}
       </div>
     </div>
   );
