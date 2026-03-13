@@ -18,6 +18,8 @@ const Index = () => {
     deleteItem,
     toggleTodo,
     addTodoItem,
+    addConnection,
+    deleteConnection,
     addBoard,
   } = useCanvas();
 
@@ -26,7 +28,6 @@ const Index = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-canvas">
-      {/* Desktop sidebar */}
       <div className="hidden md:flex">
         <BoardSidebar
           boards={boards}
@@ -36,7 +37,6 @@ const Index = () => {
         />
       </div>
 
-      {/* Mobile sidebar overlay */}
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
@@ -57,18 +57,19 @@ const Index = () => {
         </div>
       )}
 
-      {/* Canvas */}
       <InfiniteCanvas
         items={activeBoard.items}
+        connections={activeBoard.connections}
         activeTool={activeTool}
         onMoveItem={moveItem}
         onUpdateItem={updateItem}
         onDeleteItem={deleteItem}
         onToggleTodo={toggleTodo}
         onAddTodo={addTodoItem}
+        onAddConnection={addConnection}
+        onDeleteConnection={deleteConnection}
       />
 
-      {/* Desktop floating toolbar */}
       <div className="hidden md:block">
         <FloatingToolbar
           activeTool={activeTool}
@@ -78,7 +79,6 @@ const Index = () => {
         />
       </div>
 
-      {/* Mobile bottom nav */}
       <MobileBottomNav
         onAddNote={() => addNote()}
         onAddTodo={() => addTodo()}

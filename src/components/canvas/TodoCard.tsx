@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Trash2, Plus, Check } from 'lucide-react';
 import { CanvasItem } from '@/types/canvas';
+import { ConnectorHandle } from './ConnectorHandle';
 
 interface TodoCardProps {
   item: CanvasItem;
@@ -10,9 +11,12 @@ interface TodoCardProps {
   onToggleTodo: (itemId: string, todoId: string) => void;
   onAddTodo: (itemId: string, text: string) => void;
   onDragStart: (id: string, e: React.PointerEvent) => void;
+  onStartConnect: (id: string) => void;
+  onEndConnect: (id: string) => void;
+  isConnecting: boolean;
 }
 
-export function TodoCard({ item, onUpdate, onDelete, onToggleTodo, onAddTodo, onDragStart }: TodoCardProps) {
+export function TodoCard({ item, onUpdate, onDelete, onToggleTodo, onAddTodo, onDragStart, onStartConnect, onEndConnect, isConnecting }: TodoCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newTodoText, setNewTodoText] = useState('');
 
@@ -37,6 +41,7 @@ export function TodoCard({ item, onUpdate, onDelete, onToggleTodo, onAddTodo, on
         onDragStart(item.id, e);
       }}
     >
+      <ConnectorHandle itemId={item.id} onStartConnect={onStartConnect} onEndConnect={onEndConnect} isConnecting={isConnecting} />
       <div className="p-4">
         <div className="flex items-start justify-between mb-3">
           <input

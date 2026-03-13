@@ -1,26 +1,33 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { CanvasItem } from '@/types/canvas';
+import { CanvasItem, Connection } from '@/types/canvas';
 import { NoteCard } from './NoteCard';
 import { TodoCard } from './TodoCard';
+import { ConnectionLayer } from './ConnectionLayer';
 
 interface InfiniteCanvasProps {
   items: CanvasItem[];
+  connections: Connection[];
   activeTool: string;
   onMoveItem: (id: string, x: number, y: number) => void;
   onUpdateItem: (id: string, updates: Partial<CanvasItem>) => void;
   onDeleteItem: (id: string) => void;
   onToggleTodo: (itemId: string, todoId: string) => void;
   onAddTodo: (itemId: string, text: string) => void;
+  onAddConnection: (fromId: string, toId: string) => void;
+  onDeleteConnection: (id: string) => void;
 }
 
 export function InfiniteCanvas({
   items,
+  connections,
   activeTool,
   onMoveItem,
   onUpdateItem,
   onDeleteItem,
   onToggleTodo,
   onAddTodo,
+  onAddConnection,
+  onDeleteConnection,
 }: InfiniteCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -30,16 +37,42 @@ export function InfiniteCanvas({
 
   const dragRef = useRef<{ id: string; startX: number; startY: number; itemX: number; itemY: number } | null>(null);
 
+  // Connection state
+  const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+
+  const handleStartConnect = useCallback((id: string) => {
+    setConnectingFrom(id);
+  }, []);
+
+  const handleEndConnect = useCallback((id: string) => {
+    if (connectingFrom && connectingFrom !== id) {
+      onAddConnection(connectingFrom, id);
+    }
+    setConnectingFrom(null);
+    setMousePos(null);
+  }, [connectingFrom, onAddConnection]);
+
   const handleCanvasPointerDown = useCallback((e: React.PointerEvent) => {
+    if (connectingFrom) {
+      setConnectingFrom(null);
+      setMousePos(null);
+      return;
+    }
     if (activeTool === 'pan' || e.button === 1) {
       setIsPanning(true);
       panStart.current = { x: e.clientX, y: e.clientY };
       panOrigin.current = { ...pan };
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
     }
-  }, [activeTool, pan]);
+  }, [activeTool, pan, connectingFrom]);
 
   const handleCanvasPointerMove = useCallback((e: React.PointerEvent) => {
+    if (connectingFrom && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setMousePos({ x: e.clientX - rect.left - pan.x, y: e.clientY - rect.top - pan.y });
+      return;
+    }
     if (isPanning) {
       setPan({
         x: panOrigin.current.x + (e.clientX - panStart.current.x),
@@ -52,7 +85,7 @@ export function InfiniteCanvas({
       const dy = e.clientY - dragRef.current.startY;
       onMoveItem(dragRef.current.id, dragRef.current.itemX + dx, dragRef.current.itemY + dy);
     }
-  }, [isPanning, onMoveItem]);
+  }, [isPanning, onMoveItem, connectingFrom, pan]);
 
   const handleCanvasPointerUp = useCallback(() => {
     setIsPanning(false);
@@ -60,15 +93,14 @@ export function InfiniteCanvas({
   }, []);
 
   const handleItemDragStart = useCallback((id: string, e: React.PointerEvent) => {
-    if (activeTool === 'pan') return;
+    if (activeTool === 'pan' || connectingFrom) return;
     e.stopPropagation();
     const item = items.find(i => i.id === id);
     if (!item) return;
     dragRef.current = { id, startX: e.clientX, startY: e.clientY, itemX: item.x, itemY: item.y };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, [activeTool, items]);
+  }, [activeTool, items, connectingFrom]);
 
-  // Wheel to pan
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -84,7 +116,7 @@ export function InfiniteCanvas({
     <div
       ref={containerRef}
       className={`flex-1 relative overflow-hidden bg-canvas canvas-dots ${
-        activeTool === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+        connectingFrom ? 'cursor-crosshair' : activeTool === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       }`}
       onPointerDown={handleCanvasPointerDown}
       onPointerMove={handleCanvasPointerMove}
@@ -94,6 +126,13 @@ export function InfiniteCanvas({
         className="absolute inset-0"
         style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
       >
+        <ConnectionLayer
+          items={items}
+          connections={connections}
+          onDeleteConnection={onDeleteConnection}
+          connectingFrom={connectingFrom}
+          mousePos={mousePos}
+        />
         {items.map(item =>
           item.type === 'note' ? (
             <NoteCard
@@ -102,6 +141,9 @@ export function InfiniteCanvas({
               onUpdate={onUpdateItem}
               onDelete={onDeleteItem}
               onDragStart={handleItemDragStart}
+              onStartConnect={handleStartConnect}
+              onEndConnect={handleEndConnect}
+              isConnecting={!!connectingFrom}
             />
           ) : (
             <TodoCard
@@ -112,6 +154,9 @@ export function InfiniteCanvas({
               onToggleTodo={onToggleTodo}
               onAddTodo={onAddTodo}
               onDragStart={handleItemDragStart}
+              onStartConnect={handleStartConnect}
+              onEndConnect={handleEndConnect}
+              isConnecting={!!connectingFrom}
             />
           )
         )}

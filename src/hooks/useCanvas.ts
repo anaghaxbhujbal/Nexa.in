@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { CanvasItem, Board, TodoItem } from '@/types/canvas';
+import { CanvasItem, Board, TodoItem, Connection } from '@/types/canvas';
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
@@ -17,7 +17,7 @@ const defaultBoards: Board[] = [
         width: 280,
         title: 'Welcome! 👋',
         content: 'This is your visual workspace. Drag cards around, add notes and todos, and organize your thoughts visually.',
-        color: 'sage',
+        color: 'mint',
       },
       {
         id: 'todo-1',
@@ -29,7 +29,7 @@ const defaultBoards: Board[] = [
         todos: [
           { id: 't1', text: 'Explore the canvas', completed: false },
           { id: 't2', text: 'Create a new note', completed: false },
-          { id: 't3', text: 'Add a todo list', completed: true },
+          { id: 't3', text: 'Connect two cards', completed: false },
         ],
       },
       {
@@ -40,8 +40,11 @@ const defaultBoards: Board[] = [
         width: 240,
         title: 'Design Ideas',
         content: 'Capture your creative thoughts here. Move this card anywhere on the canvas!',
-        color: 'terracotta',
+        color: 'lavender',
       },
+    ],
+    connections: [
+      { id: 'conn-1', fromId: 'note-1', toId: 'todo-1' },
     ],
   },
   {
@@ -49,12 +52,14 @@ const defaultBoards: Board[] = [
     name: 'Project Alpha',
     icon: '🚀',
     items: [],
+    connections: [],
   },
   {
     id: 'board-3',
     name: 'Reading Notes',
     icon: '📚',
     items: [],
+    connections: [],
   },
 ];
 
@@ -75,6 +80,8 @@ export function useCanvas() {
   }, [updateItems]);
 
   const addNote = useCallback((x?: number, y?: number) => {
+    const colors = ['rose', 'peach', 'lemon', 'mint', 'sky', 'lavender', 'sage', 'coral'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
     const newNote: CanvasItem = {
       id: generateId(),
       type: 'note',
@@ -83,7 +90,7 @@ export function useCanvas() {
       width: 260,
       title: 'New Note',
       content: '',
-      color: 'default',
+      color: randomColor,
     };
     updateItems(items => [...items, newNote]);
     return newNote.id;
@@ -108,8 +115,14 @@ export function useCanvas() {
   }, [updateItems]);
 
   const deleteItem = useCallback((id: string) => {
-    updateItems(items => items.filter(item => item.id !== id));
-  }, [updateItems]);
+    setBoards(prev =>
+      prev.map(b => b.id === activeBoardId ? {
+        ...b,
+        items: b.items.filter(item => item.id !== id),
+        connections: b.connections.filter(c => c.fromId !== id && c.toId !== id),
+      } : b)
+    );
+  }, [activeBoardId]);
 
   const toggleTodo = useCallback((itemId: string, todoId: string) => {
     updateItems(items =>
@@ -135,8 +148,28 @@ export function useCanvas() {
     );
   }, [updateItems]);
 
+  const addConnection = useCallback((fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    setBoards(prev =>
+      prev.map(b => {
+        if (b.id !== activeBoardId) return b;
+        const exists = b.connections.some(c =>
+          (c.fromId === fromId && c.toId === toId) || (c.fromId === toId && c.toId === fromId)
+        );
+        if (exists) return b;
+        return { ...b, connections: [...b.connections, { id: generateId(), fromId, toId }] };
+      })
+    );
+  }, [activeBoardId]);
+
+  const deleteConnection = useCallback((id: string) => {
+    setBoards(prev =>
+      prev.map(b => b.id === activeBoardId ? { ...b, connections: b.connections.filter(c => c.id !== id) } : b)
+    );
+  }, [activeBoardId]);
+
   const addBoard = useCallback((name: string) => {
-    const newBoard: Board = { id: generateId(), name, icon: '📋', items: [] };
+    const newBoard: Board = { id: generateId(), name, icon: '📋', items: [], connections: [] };
     setBoards(prev => [...prev, newBoard]);
     setActiveBoardId(newBoard.id);
   }, []);
@@ -153,6 +186,8 @@ export function useCanvas() {
     deleteItem,
     toggleTodo,
     addTodoItem,
+    addConnection,
+    deleteConnection,
     addBoard,
   };
 }
