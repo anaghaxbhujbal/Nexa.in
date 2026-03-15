@@ -21,6 +21,7 @@ const Index = () => {
     updateItem, deleteItem, toggleTodo, addTodoItem,
     addConnection, deleteConnection, addBoard,
     recycleBin, restoreItem, permanentDeleteItem, emptyRecycleBin,
+    loading: canvasLoading,
   } = useCanvas();
 
   const { mode, setThemeMode } = useTheme();
@@ -28,7 +29,7 @@ const Index = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [recycleBinOpen, setRecycleBinOpen] = useState(false);
 
-  if (loading) {
+  if (loading || canvasLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-canvas">
         <div className="font-display text-muted-foreground animate-pulse">Loading...</div>
