@@ -57,32 +57,15 @@ const defaultBoards: Board[] = [
       { id: 'conn-2', fromId: 'scratch-1', toId: 'note-2' },
     ],
   },
-  {
-    id: 'board-2',
-    name: 'Story Arc',
-    icon: '📖',
-    items: [],
-    connections: [],
-  },
-  {
-    id: 'board-3',
-    name: 'Song Ideas',
-    icon: '🎵',
-    items: [],
-    connections: [],
-  },
-  {
-    id: 'board-4',
-    name: 'Moodboard',
-    icon: '🎨',
-    items: [],
-    connections: [],
-  },
+  { id: 'board-2', name: 'Story Arc', icon: '📖', items: [], connections: [] },
+  { id: 'board-3', name: 'Song Ideas', icon: '🎵', items: [], connections: [] },
+  { id: 'board-4', name: 'Moodboard', icon: '🎨', items: [], connections: [] },
 ];
 
 export function useCanvas() {
   const [boards, setBoards] = useState<Board[]>(defaultBoards);
   const [activeBoardId, setActiveBoardId] = useState('board-1');
+  const [recycleBin, setRecycleBin] = useState<CanvasItem[]>([]);
 
   const activeBoard = boards.find(b => b.id === activeBoardId) || boards[0];
 
@@ -100,14 +83,9 @@ export function useCanvas() {
     const colors = ['rose', 'peach', 'lemon', 'mint', 'sky', 'lavender', 'sage', 'coral'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
     const newNote: CanvasItem = {
-      id: generateId(),
-      type: 'note',
-      x: x ?? 200 + Math.random() * 200,
-      y: y ?? 200 + Math.random() * 200,
-      width: 260,
-      title: 'New Note',
-      content: '',
-      color: randomColor,
+      id: generateId(), type: 'note',
+      x: x ?? 200 + Math.random() * 200, y: y ?? 200 + Math.random() * 200,
+      width: 260, title: 'New Note', content: '', color: randomColor,
     };
     updateItems(items => [...items, newNote]);
     return newNote.id;
@@ -115,13 +93,9 @@ export function useCanvas() {
 
   const addTodo = useCallback((x?: number, y?: number) => {
     const newTodo: CanvasItem = {
-      id: generateId(),
-      type: 'todo',
-      x: x ?? 200 + Math.random() * 200,
-      y: y ?? 200 + Math.random() * 200,
-      width: 260,
-      title: 'New List',
-      todos: [],
+      id: generateId(), type: 'todo',
+      x: x ?? 200 + Math.random() * 200, y: y ?? 200 + Math.random() * 200,
+      width: 260, title: 'New List', todos: [],
     };
     updateItems(items => [...items, newTodo]);
     return newTodo.id;
@@ -129,12 +103,9 @@ export function useCanvas() {
 
   const addImage = useCallback((x?: number, y?: number) => {
     const newImage: CanvasItem = {
-      id: generateId(),
-      type: 'image',
-      x: x ?? 200 + Math.random() * 200,
-      y: y ?? 200 + Math.random() * 200,
-      width: 240,
-      title: 'Moodboard',
+      id: generateId(), type: 'image',
+      x: x ?? 200 + Math.random() * 200, y: y ?? 200 + Math.random() * 200,
+      width: 240, title: 'Moodboard',
     };
     updateItems(items => [...items, newImage]);
     return newImage.id;
@@ -142,13 +113,9 @@ export function useCanvas() {
 
   const addScratch = useCallback((x?: number, y?: number) => {
     const newScratch: CanvasItem = {
-      id: generateId(),
-      type: 'scratch',
-      x: x ?? 200 + Math.random() * 200,
-      y: y ?? 200 + Math.random() * 200,
-      width: 340,
-      title: 'Scratch Pad',
-      content: '',
+      id: generateId(), type: 'scratch',
+      x: x ?? 200 + Math.random() * 200, y: y ?? 200 + Math.random() * 200,
+      width: 340, title: 'Scratch Pad', content: '',
     };
     updateItems(items => [...items, newScratch]);
     return newScratch.id;
@@ -159,25 +126,41 @@ export function useCanvas() {
   }, [updateItems]);
 
   const deleteItem = useCallback((id: string) => {
-    setBoards(prev =>
-      prev.map(b => b.id === activeBoardId ? {
+    // Move to recycle bin instead of permanent delete
+    setBoards(prev => {
+      const board = prev.find(b => b.id === activeBoardId);
+      const item = board?.items.find(i => i.id === id);
+      if (item) {
+        setRecycleBin(bin => [...bin, item]);
+      }
+      return prev.map(b => b.id === activeBoardId ? {
         ...b,
         items: b.items.filter(item => item.id !== id),
         connections: b.connections.filter(c => c.fromId !== id && c.toId !== id),
-      } : b)
-    );
+      } : b);
+    });
   }, [activeBoardId]);
+
+  const restoreItem = useCallback((id: string) => {
+    const item = recycleBin.find(i => i.id === id);
+    if (!item) return;
+    setRecycleBin(bin => bin.filter(i => i.id !== id));
+    updateItems(items => [...items, item]);
+  }, [recycleBin, updateItems]);
+
+  const permanentDeleteItem = useCallback((id: string) => {
+    setRecycleBin(bin => bin.filter(i => i.id !== id));
+  }, []);
+
+  const emptyRecycleBin = useCallback(() => {
+    setRecycleBin([]);
+  }, []);
 
   const toggleTodo = useCallback((itemId: string, todoId: string) => {
     updateItems(items =>
       items.map(item =>
         item.id === itemId
-          ? {
-              ...item,
-              todos: item.todos?.map(t =>
-                t.id === todoId ? { ...t, completed: !t.completed } : t
-              ),
-            }
+          ? { ...item, todos: item.todos?.map(t => t.id === todoId ? { ...t, completed: !t.completed } : t) }
           : item
       )
     );
@@ -219,21 +202,10 @@ export function useCanvas() {
   }, []);
 
   return {
-    boards,
-    activeBoard,
-    activeBoardId,
-    setActiveBoardId,
-    moveItem,
-    addNote,
-    addTodo,
-    addImage,
-    addScratch,
-    updateItem,
-    deleteItem,
-    toggleTodo,
-    addTodoItem,
-    addConnection,
-    deleteConnection,
-    addBoard,
+    boards, activeBoard, activeBoardId, setActiveBoardId,
+    moveItem, addNote, addTodo, addImage, addScratch,
+    updateItem, deleteItem, toggleTodo, addTodoItem,
+    addConnection, deleteConnection, addBoard,
+    recycleBin, restoreItem, permanentDeleteItem, emptyRecycleBin,
   };
 }
