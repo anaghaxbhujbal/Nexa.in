@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      boards: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      canvas_items: {
+        Row: {
+          board_id: string
+          color: string | null
+          content: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          image_url: string | null
+          is_deleted: boolean
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+          width: number
+          x: number
+          y: number
+        }
+        Insert: {
+          board_id: string
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          title?: string
+          type: string
+          updated_at?: string
+          user_id: string
+          width?: number
+          x?: number
+          y?: number
+        }
+        Update: {
+          board_id?: string
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          width?: number
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canvas_items_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      connections: {
+        Row: {
+          board_id: string
+          color: string | null
+          created_at: string
+          from_item_id: string
+          id: string
+          to_item_id: string
+          user_id: string
+        }
+        Insert: {
+          board_id: string
+          color?: string | null
+          created_at?: string
+          from_item_id: string
+          id?: string
+          to_item_id: string
+          user_id: string
+        }
+        Update: {
+          board_id?: string
+          color?: string | null
+          created_at?: string
+          from_item_id?: string
+          id?: string
+          to_item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connections_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_from_item_id_fkey"
+            columns: ["from_item_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_to_item_id_fkey"
+            columns: ["to_item_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -35,6 +179,77 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      todo_items: {
+        Row: {
+          canvas_item_id: string
+          completed: boolean
+          created_at: string
+          id: string
+          sort_order: number
+          text: string
+          user_id: string
+        }
+        Insert: {
+          canvas_item_id: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          text?: string
+          user_id: string
+        }
+        Update: {
+          canvas_item_id?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "todo_items_canvas_item_id_fkey"
+            columns: ["canvas_item_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_tracks: {
+        Row: {
+          artist: string
+          created_at: string
+          duration: number | null
+          external_url: string | null
+          id: string
+          storage_path: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          artist?: string
+          created_at?: string
+          duration?: number | null
+          external_url?: string | null
+          id?: string
+          storage_path?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          artist?: string
+          created_at?: string
+          duration?: number | null
+          external_url?: string | null
+          id?: string
+          storage_path?: string | null
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
