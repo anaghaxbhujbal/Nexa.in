@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trash2, ImagePlus } from 'lucide-react';
 import { CanvasItem } from '@/types/canvas';
 import { ConnectorHandle } from './ConnectorHandle';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImageCardProps {
   item: CanvasItem;
@@ -16,15 +17,39 @@ interface ImageCardProps {
 
 export function ImageCard({ item, onUpdate, onDelete, onDragStart, onStartConnect, onEndConnect, isConnecting }: ImageCardProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      onUpdate(item.id, { imageUrl: ev.target?.result as string });
-    };
-    reader.readAsDataURL(file);
+
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        // Fallback to base64 if not authenticated
+        const reader = new FileReader();
+        reader.onload = (ev) => onUpdate(item.id, { imageUrl: ev.target?.result as string });
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${item.id}.${ext}`;
+      const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true });
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(path);
+      onUpdate(item.id, { imageUrl: publicUrl });
+    } catch (err) {
+      console.error('Upload failed:', err);
+      // Fallback to base64
+      const reader = new FileReader();
+      reader.onload = (ev) => onUpdate(item.id, { imageUrl: ev.target?.result as string });
+      reader.readAsDataURL(file);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -33,10 +58,7 @@ export function ImageCard({ item, onUpdate, onDelete, onDragStart, onStartConnec
       animate={{ opacity: 1, scale: 1 }}
       className="absolute rounded-lg border border-card-border bg-card shadow-sm cursor-grab active:cursor-grabbing group"
       style={{ left: item.x, top: item.y, width: item.width }}
-      onPointerDown={(e) => {
-        if (isEditing) return;
-        onDragStart(item.id, e);
-      }}
+      onPointerDown={(e) => { if (isEditing) return; onDragStart(item.id, e); }}
     >
       <ConnectorHandle itemId={item.id} onStartConnect={onStartConnect} onEndConnect={onEndConnect} isConnecting={isConnecting} />
       <div className="p-3">
@@ -48,10 +70,7 @@ export function ImageCard({ item, onUpdate, onDelete, onDragStart, onStartConnec
             onFocus={() => setIsEditing(true)}
             onBlur={() => setIsEditing(false)}
           />
-          <button
-            onClick={() => onDelete(item.id)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted text-muted-foreground"
-          >
+          <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted text-muted-foreground">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -65,9 +84,9 @@ export function ImageCard({ item, onUpdate, onDelete, onDragStart, onStartConnec
             </label>
           </div>
         ) : (
-          <label className="flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors">
+          <label className={`flex flex-col items-center justify-center gap-2 py-8 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
             <ImagePlus className="w-8 h-8 text-muted-foreground" />
-            <span className="text-xs font-body text-muted-foreground">Click to add image</span>
+            <span className="text-xs font-body text-muted-foreground">{uploading ? 'Uploading...' : 'Click to add image'}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
           </label>
         )}
