@@ -37,10 +37,16 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    navigate('/auth');
-    return null;
+  if (!user && !loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-canvas">
+        <div className="font-display text-muted-foreground animate-pulse">Redirecting...</div>
+        {(() => { navigate('/auth'); return null; })()}
+      </div>
+    );
   }
+
+  if (!user) return null;
 
   return (
     <div className="h-screen flex overflow-hidden bg-canvas">
