@@ -107,10 +107,10 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={submitting}
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-display font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {loading ? '...' : isLogin ? 'Sign In' : 'Create Account'}
+              {submitting ? '...' : isLogin ? 'Sign In' : 'Create Account'}
             </button>
           </form>
 
