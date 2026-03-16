@@ -47,7 +47,7 @@ const Auth = () => {
     } catch (err: any) {
       toast.error(err.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
