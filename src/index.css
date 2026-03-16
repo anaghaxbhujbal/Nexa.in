@@ -110,4 +110,20 @@
       linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
     background-size: 32px 32px;
   }
+
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl border border-card-border;
+  }
+
+  .glass-strong {
+    @apply bg-card/90 backdrop-blur-2xl border border-card-border shadow-lg;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .active-press {
+    @apply transition-transform duration-100 active:scale-95;
+  }
 }
