@@ -1,17 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
+  const { user, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  // Redirect to home if already logged in (persistent session)
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
