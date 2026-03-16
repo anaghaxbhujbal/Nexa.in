@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCanvas } from '@/hooks/useCanvas';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +29,12 @@ const Index = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [recycleBinOpen, setRecycleBinOpen] = useState(false);
 
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
   if (loading || canvasLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-canvas">
@@ -37,10 +43,7 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="h-screen flex overflow-hidden bg-canvas">
