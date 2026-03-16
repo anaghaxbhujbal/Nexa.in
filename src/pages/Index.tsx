@@ -84,28 +84,49 @@ const Index = () => {
       />
 
       {/* Top-right controls */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        <ThemeToggle mode={mode} onModeChange={setThemeMode} />
-        <button
-          onClick={() => setRecycleBinOpen(true)}
-          className="relative p-2 rounded-lg bg-card border border-card-border text-muted-foreground hover:text-foreground shadow-sm transition-colors"
-          title="Recycle Bin"
-        >
-          <Trash2 className="w-4 h-4" />
-          {recycleBin.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-              {recycleBin.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={signOut}
-          className="p-2 rounded-lg bg-card border border-card-border text-muted-foreground hover:text-foreground shadow-sm transition-colors"
-          title="Sign Out"
-        >
-          <LogOut className="w-4 h-4" />
-        </button>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 25 }}
+        className="fixed top-4 right-4 z-50 flex items-center gap-1.5"
+      >
+        <div className="flex items-center gap-1 glass-strong rounded-xl px-1.5 py-1.5">
+          <ThemeToggle mode={mode} onModeChange={setThemeMode} />
+          <div className="w-px h-5 bg-border" />
+          <motion.button
+            onClick={() => setRecycleBinOpen(true)}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title="Recycle Bin"
+          >
+            <Trash2 className="w-4 h-4" />
+            <AnimatePresence>
+              {recycleBin.length > 0 && (
+                <motion.span 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center"
+                >
+                  {recycleBin.length}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+          <div className="w-px h-5 bg-border" />
+          <motion.button
+            onClick={signOut}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            title="Sign Out"
+          >
+            <LogOut className="w-4 h-4" />
+          </motion.button>
+        </div>
+      </motion.div>
 
       <div className="hidden md:block">
         <FloatingToolbar
